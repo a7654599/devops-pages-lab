@@ -1,5 +1,7 @@
-   # Hi, I'm a7654599
+# Hi, I'm 林易逵
 
-   ## Recent activity
-   <!--START_SECTION:activity-->
-   <!--END_SECTION:activity-->
+DevOps Assignment 7: GitHub Pages + Auto Activity Log
+
+## Recent activity
+<!--START_SECTION:activity-->
+<!--END_SECTION:activity-->
