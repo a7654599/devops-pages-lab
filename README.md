@@ -2,8 +2,6 @@
 
 DevOps Assignment 7: GitHub Pages + Auto Activity Log
 
-See [broken link](https://github.com/a7654599/this-repo-does-not-exist-12345)
-
 ## Recent activity
 <!--START_SECTION:activity-->
 1. Added a private repository
