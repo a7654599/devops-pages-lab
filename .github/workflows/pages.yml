@@ -1,0 +1,72 @@
+name: Pages (gated deploy)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # ---------- Gate: nothing is deployed unless this passes ----------
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check README activity markers
+        run: |
+          grep -q "<!--START_SECTION:activity-->" README.md || { echo "::error::START marker missing in README.md"; exit 1; }
+          grep -q "<!--END_SECTION:activity-->" README.md || { echo "::error::END marker missing in README.md"; exit 1; }
+          echo "Markers OK"
+
+      - name: Check index.md include
+        run: |
+          grep -q "include_relative README.md" index.md || { echo "::error::index.md does not include README.md"; exit 1; }
+          echo "Include OK"
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --accept 200,206,429 README.md index.md
+          fail: true
+
+  # ---------- Build (only after the gate passes) ----------
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+
+      - name: Verify built homepage contains README content
+        run: |
+          grep -q "Recent activity" _site/index.html || { echo "::error::README was not rendered into index.html"; exit 1; }
+          echo "Built homepage OK"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+
+  # ---------- Deploy ----------
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
